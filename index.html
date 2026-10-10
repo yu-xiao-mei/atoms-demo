@@ -64,12 +64,16 @@
 
     // ===== 1. LLM 封装 =====
     // 👇👇👇 在这里替换为你自己的智谱 API Key 👇👇👇
-    const ZHIPU_API_KEY = 'd9df26474e0d4d8ca3713d6399858499.PX8zCquXVAdeogEd';
+    const ZHIPU_API_KEY = '你的Key';
     const ZHIPU_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
     const ZHIPU_MODEL = 'glm-4-flash';
     const LLM_TIMEOUT = 20000;
 
     async function callLLM(messages, temperature = 0.7) {
+      const key = String(ZHIPU_API_KEY).trim();
+      if (!key || key === '你的Key' || /[^\x20-\x7E]/.test(key)) {
+        throw new Error('请先在 index.html 顶部把 ZHIPU_API_KEY 替换为你的智谱 API Key（只能包含英文字符，可在 https://open.bigmodel.cn/ 获取）');
+      }
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), LLM_TIMEOUT);
       try {
