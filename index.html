@@ -66,22 +66,136 @@ const { useState, useEffect, useRef } = React;
 const ZHIPU_API_KEY = '5d7e3c5b8fab407f82041ae71afa5be5.b2Jk2NSF5s7kWlHf';
 const ZHIPU_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 const ZHIPU_MODEL = 'glm-4-flash';
+const LLM_TIMEOUT = 20000;
 
 async function callLLM(messages, temperature = 0.7) {
-  const res = await fetch(ZHIPU_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${ZHIPU_API_KEY}`,
-    },
-    body: JSON.stringify({ model: ZHIPU_MODEL, messages, temperature }),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`API 错误 ${res.status}: ${t.slice(0, 200)}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LLM_TIMEOUT);
+  try {
+    const res = await fetch(ZHIPU_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ZHIPU_API_KEY}` },
+      body: JSON.stringify({ model: ZHIPU_MODEL, messages, temperature }),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`API 错误 ${res.status}: ${t.slice(0, 200)}`);
+    }
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || '';
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('请求超时，请重试');
+    throw e;
+  } finally {
+    clearTimeout(timer);
   }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || '';
+}
+
+// ============ 本地规则（预设按钮秒回） ============
+const LOCAL_RULES = [
+  {
+    match: /写作|文章|文案/,
+    result: { action: 'create', template: 'AIWriter', name: 'AI 写作助手',
+      config: { theme: 'purple', welcome: '输入主题，AI 会为你生成文章' },
+      replySteps: [
+        '我理解你想做一个 AI 写作助手。',
+        '生成：主题输入框、生成按钮、文章展示区。',
+        '应用已生成，右侧可预览。',
+      ] },
+  },
+  {
+    match: /代码|dockerfile|docker|脚本/,
+    result: { action: 'create', template: 'AICoder', name: 'AI 代码助手',
+      config: { theme: 'blue', welcome: '描述你的编程需求' },
+      replySteps: [
+        '我理解你想做一个 AI 代码助手。',
+        '生成：需求输入框、生成按钮、代码展示区。',
+        '应用已生成，右侧可预览。',
+      ] },
+  },
+  {
+    match: /问答|对话|聊天|助手/,
+    result: { action: 'create', template: 'ChatAssistant', name: 'AI 问答助手',
+      config: { theme: 'green', welcome: '你好！有什么可以帮你？' },
+      replySteps: [
+        '我理解你想做一个 AI 问答助手。',
+        '生成：消息列表、输入框、发送按钮。',
+        '应用已生成，右侧可预览。',
+      ] },
+  },
+];
+
+const THEME_KEYWORDS = { 红:'red', 蓝:'blue', 紫:'purple', 绿:'green', 橙:'orange', 粉:'pink' };
+
+function tryLocalRule(input, hasApp) {
+  const text = input.trim();
+  // 主题切换
+  if (hasApp && /主题|颜色|换|改成/.test(text)) {
+    for (const k in THEME_KEYWORDS) {
+      if (text.includes(k)) {
+        return { action: 'updateTheme', config: { theme: THEME_KEYWORDS[k] },
+          replySteps: [`已切换为${k}色主题。`] };
+      }
+    }
+  }
+  // 加功能
+  if (hasApp && /加|添加|增加/.test(text) && /导出/.test(text)) {
+    return { action: 'toggleFeature', config: { feature: 'export' },
+      replySteps: ['已添加导出功能。'] };
+  }
+  // 创建应用
+  for (const rule of LOCAL_RULES) {
+    if (rule.match.test(text)) {
+      const r = { ...rule.result };
+      // 主题色覆盖
+      for (const k in THEME_KEYWORDS) {
+        if (text.includes(k)) { r.config = { ...r.config, theme: THEME_KEYWORDS[k] }; break; }
+      }
+      return r;
+    }
+  }
+  return null;
+}
+
+// ============ 智能体：LLM 解析（仅自由输入时调用） ============
+async function parseIntentWithLLM(userInput, currentApp) {
+  const sys = `你是应用生成智能体。用户用自然语言描述想要的应用，你判断意图并输出严格 JSON。
+
+可选模板：
+- AIWriter: AI 写作助手
+- AICoder: AI 代码助手
+- ChatAssistant: AI 问答助手
+
+主题色：blue, purple, green, red, orange, pink
+
+只输出 JSON：
+
+创建：
+{"action":"create","template":"AIWriter","name":"AI 写作助手","config":{"theme":"purple","welcome":"输入主题"},"replySteps":["步骤1","步骤2"]}
+
+改主题：
+{"action":"updateTheme","config":{"theme":"red"},"replySteps":["已切换"]}
+
+加功能：
+{"action":"toggleFeature","config":{"feature":"export"},"replySteps":["已添加"]}
+
+无法理解：
+{"action":"unknown","replySteps":["提示"]}
+
+当前有激活应用：${currentApp ? '是，' + currentApp.name : '否'}`;
+
+  const reply = await callLLM([
+    { role: 'system', content: sys },
+    { role: 'user', content: userInput },
+  ], 0.3);
+
+  let txt = reply.trim();
+  const m = txt.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (m) txt = m[1].trim();
+  const s = txt.indexOf('{'), e = txt.lastIndexOf('}');
+  if (s >= 0 && e > s) txt = txt.slice(s, e + 1);
+  return JSON.parse(txt);
 }
 
 // ============ IndexedDB ============
@@ -145,46 +259,6 @@ function useLiveQuery(queryFn, deps = []) {
 }
 
 const nanoid = () => Math.random().toString(36).slice(2, 10);
-
-// ============ 智能体：LLM 解析意图 ============
-async function parseIntentWithLLM(userInput, currentApp) {
-  const sys = `你是一个应用生成智能体。用户用自然语言描述想要的应用，你判断意图并输出严格 JSON。
-
-可选模板：
-- AIWriter: AI 写作助手（输入主题生成文章）
-- AICoder: AI 代码助手（输入需求生成代码，如 Dockerfile）
-- ChatAssistant: AI 问答助手（多轮对话）
-
-可选主题色：blue, purple, green, red, orange, pink
-
-输出格式（只输出 JSON，不要任何额外文字）：
-
-创建应用：
-{"action":"create","template":"AIWriter","name":"AI 写作助手","config":{"theme":"purple","welcome":"输入主题"},"replySteps":["步骤1","步骤2","步骤3"]}
-
-修改主题：
-{"action":"updateTheme","config":{"theme":"red"},"replySteps":["正在调整...","完成"]}
-
-添加功能：
-{"action":"toggleFeature","config":{"feature":"export"},"replySteps":["正在添加...","完成"]}
-
-无法理解：
-{"action":"unknown","replySteps":["提示1","提示2"]}
-
-当前是否有激活应用：${currentApp ? '是，' + currentApp.name : '否'}`;
-
-  const reply = await callLLM([
-    { role: 'system', content: sys },
-    { role: 'user', content: userInput },
-  ], 0.3);
-
-  let txt = reply.trim();
-  const m = txt.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (m) txt = m[1].trim();
-  const s = txt.indexOf('{'), e = txt.lastIndexOf('}');
-  if (s >= 0 && e > s) txt = txt.slice(s, e + 1);
-  return JSON.parse(txt);
-}
 
 const THEME_BG = { blue:'bg-blue-50', purple:'bg-purple-50', green:'bg-green-50', red:'bg-red-50', orange:'bg-orange-50', pink:'bg-pink-50' };
 const THEME_BTN = { blue:'bg-blue-500', purple:'bg-purple-500', green:'bg-green-500', red:'bg-red-500', orange:'bg-orange-500', pink:'bg-pink-500' };
@@ -383,6 +457,7 @@ function ChatPanel({ activeAppId, activeApp, onCreateApp, onUpdateApp }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [hint, setHint] = useState('');
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -398,29 +473,51 @@ function ChatPanel({ activeAppId, activeApp, onCreateApp, onUpdateApp }) {
     setMessages(p => [...p, msg]);
   };
 
+  const applyResult = async (result) => {
+    const steps = result.replySteps || ['处理中...'];
+    for (const step of steps) await pushMessage('assistant', step);
+
+    if (result.action === 'create' && result.template && result.config) {
+      await onCreateApp(result.template, result.config, result.name || '未命名应用');
+    } else if (result.action === 'updateTheme' && activeAppId) {
+      await onUpdateApp(activeAppId, { config: { theme: result.config.theme } });
+    } else if (result.action === 'toggleFeature' && activeAppId) {
+      const app = await db.apps.get(activeAppId);
+      if (app) {
+        const features = new Set(app.config.features || []);
+        features.add(result.config.feature);
+        await onUpdateApp(activeAppId, { config: { ...app.config, features: Array.from(features) } });
+      }
+    }
+  };
+
   const send = async () => {
     if (!input.trim() || busy) return;
-    const text = input; setInput(''); setBusy(true);
+    const text = input; setInput(''); setBusy(true); setHint('');
     await pushMessage('user', text);
+
+    // 1. 先试本地规则
+    const localResult = tryLocalRule(text, !!activeAppId);
+    if (localResult) {
+      await applyResult(localResult);
+      setBusy(false);
+      return;
+    }
+
+    // 2. 本地规则不命中，调 LLM
+    setHint('智能体思考中（约 3-8 秒）...');
+    const started = Date.now();
     try {
       const result = await parseIntentWithLLM(text, activeApp);
-      const steps = result.replySteps || ['处理中...'];
-      for (const step of steps) { await new Promise(r => setTimeout(r, 350)); await pushMessage('assistant', step); }
-      if (result.action === 'create' && result.template && result.config) {
-        await onCreateApp(result.template, result.config, result.name || '未命名应用');
-      } else if (result.action === 'updateTheme' && activeAppId) {
-        await onUpdateApp(activeAppId, { config: { theme: result.config.theme } });
-      } else if (result.action === 'toggleFeature' && activeAppId) {
-        const app = await db.apps.get(activeAppId);
-        if (app) {
-          const features = new Set(app.config.features || []);
-          features.add(result.config.feature);
-          await onUpdateApp(activeAppId, { config: { ...app.config, features: Array.from(features) } });
-        }
-      }
+      const elapsed = ((Date.now() - started) / 1000).toFixed(1);
+      setHint(`智能体用了 ${elapsed} 秒`);
+      await applyResult(result);
     } catch (e) {
       await pushMessage('assistant', `出错了：${e.message}`);
-    } finally { setBusy(false); }
+    } finally {
+      setBusy(false);
+      setTimeout(() => setHint(''), 2000);
+    }
   };
 
   return (
@@ -443,7 +540,7 @@ function ChatPanel({ activeAppId, activeApp, onCreateApp, onUpdateApp }) {
             }`}>{m.content}</div>
           </div>
         ))}
-        {busy && <div className="text-xs text-gray-400">智能体思考中...</div>}
+        {busy && <div className="text-xs text-gray-400">{hint || '处理中...'}</div>}
         <div ref={bottomRef} />
       </div>
       <div className="p-3 border-t flex gap-2">
@@ -532,4 +629,19 @@ function Workspace() {
 
   return (
     <div className="h-screen flex bg-white">
-      <AppSidebar activeAppId={activeAppId} onSelect={setActiveAppId} onDelete
+      <AppSidebar activeAppId={activeAppId} onSelect={setActiveAppId} onDelete={deleteApp} />
+      <div className="w-96 flex-shrink-0">
+        <ChatPanel activeAppId={activeAppId} activeApp={activeApp}
+          onCreateApp={createApp} onUpdateApp={updateApp} />
+      </div>
+      <div className="flex-1">
+        <PreviewPanel app={activeApp} />
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Workspace />);
+</script>
+</body>
+</html>
