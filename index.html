@@ -429,7 +429,7 @@ function ChatPanel({ activeAppId, onCreateApp, onUpdateApp }) {
       await new Promise(r => setTimeout(r, 400));
       await pushMessage('assistant', result.replySteps[i]);
     }
-    
+
     if (result.action === 'create' && result.template && result.config) {
       const name = result.template === 'ChatAssistant' ? 'AI 对话助手'
         : result.template === 'AIWriter' ? 'AI 写作工具' : 'AI 图像生成器';
