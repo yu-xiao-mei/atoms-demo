@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atoms Demo - AI 应用生成工作区</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/dexie@3/dist/dexie.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; height: 100vh; overflow: hidden; }
+  #root { height: 100vh; }
+  .h-screen { height: 100vh; }
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .flex-1 { flex: 1; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .justify-center { justify-content: center; }
+  .gap-1 { gap: 4px; }
+  .gap-2 { gap: 8px; }
+  .overflow-hidden { overflow: hidden; }
+  .overflow-y-auto { overflow-y: auto; }
+  .w-56 { width: 224px; }
+  .w-96 { width: 384px; }
+  .flex-shrink-0 { flex-shrink: 0; }
+  .border-r { border-right: 1px solid #e5e7eb; }
+  .border-b { border-bottom: 1px solid #e5e7eb; }
+  .border-t { border-top: 1px solid #e5e7eb; }
+  .border { border: 1px solid #e5e7eb; }
+  .rounded { border-radius: 6px; }
+  .rounded-lg { border-radius: 10px; }
+  .rounded-full { border-radius: 9999px; }
+  .p-1\.5 { padding: 6px; }
+  .p-2 { padding: 8px; }
+  .p-3 { padding: 12px; }
+  .p-4 { padding: 16px; }
+  .px-2 { padding-left: 8px; padding-right: 8px; }
+  .px-3 { padding-left: 12px; padding-right: 12px; }
+  .px-4 { padding-left: 16px; padding-right: 16px; }
+  .py-2 { padding-top: 8px; padding-bottom: 8px; }
+  .py-3 { padding-top: 12px; padding-bottom: 12px; }
+  .py-4 { padding-top: 16px; padding-bottom: 16px; }
+  .space-y-1 > * + * { margin-top: 4px; }
+  .space-y-2 > * + * { margin-top: 8px; }
+  .space-y-3 > * + * { margin-top: 12px; }
+  .space-y-4 > * + * { margin-top: 16px; }
+  .text-xs { font-size: 12px; }
+  .text-sm { font-size: 14px; }
+  .font-medium { font-weight: 500; }
+  .font-semibold { font-weight: 600; }
+  .uppercase { text-transform: uppercase; }
+  .text-center { text-align: center; }
+  .text-right { text-align: right; }
+  .text-left { text-align: left; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .whitespace-pre-wrap { white-space: pre-wrap; }
+  .bg-white { background: #fff; }
+  .bg-gray-50 { background: #f9fafb; }
+  .bg-gray-100 { background: #f3f4f6; }
+  .bg-blue-50 { background: #eff6ff; }
+  .bg-blue-100 { background: #dbeafe; }
+  .bg-blue-500 { background: #3b82f6; }
+  .bg-purple-50 { background: #faf5ff; }
+  .bg-purple-500 { background: #8b5cf6; }
+  .bg-green-50 { background: #f0fdf4; }
+  .bg-green-500 { background: #10b981; }
+  .bg-red-50 { background: #fef2f2; }
+  .bg-red-500 { background: #ef4444; }
+  .bg-orange-50 { background: #fff7ed; }
+  .bg-orange-500 { background: #f59e0b; }
+  .bg-pink-50 { background: #fdf2f8; }
+  .bg-pink-500 { background: #ec4899; }
+  .bg-red-400 { background: #f87171; }
+  .bg-yellow-400 { background: #fbbf24; }
+  .bg-green-400 { background: #4ade80; }
+  .text-white { color: #fff; }
+  .text-gray-400 { color: #9ca3af; }
+  .text-gray-500 { color: #6b7280; }
+  .text-gray-600 { color: #4b5563; }
+  .text-gray-700 { color: #374151; }
+  .text-gray-800 { color: #1f2937; }
+  .text-blue-700 { color: #1d4ed8; }
+  .text-red-500 { color: #ef4444; }
+  .hover\:bg-gray-100:hover { background: #f3f4f6; }
+  .hover\:text-red-500:hover { color: #ef4444; }
+  .cursor-pointer { cursor: pointer; }
+  .outline-none { outline: none; }
+  .focus\:ring-2:focus { box-shadow: 0 0 0 2px rgba(147,197,253,.6); }
+  .opacity-0 { opacity: 0; }
+  .group:hover .group-hover\:opacity-100 { opacity: 1; }
+  .w-2\.5 { width: 10px; }
+  .h-2\.5 { height: 10px; }
+  .ml-2 { margin-left: 8px; }
+  .mt-8 { margin-top: 32px; }
+  .mb-2 { margin-bottom: 8px; }
+  .max-w-\[85\%\] { max-width: 85%; }
+  .max-w-\[80\%\] { max-width: 80%; }
+  .inline-block { display: inline-block; }
+  .shadow { box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+  .grid { display: grid; }
+  .grid-cols-2 { grid-template-columns: 1fr 1fr; }
+  .gap-4 { gap: 16px; }
+  .w-full { width: 100%; }
+  .block { display: block; }
+  .font-sans { font-family: inherit; }
+  .disabled\:opacity-50:disabled { opacity: .5; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+// ============ Dexie DB ============
+const db = new Dexie('AtomsDemoDB');
+db.version(1).stores({
+  apps: '++id, name, template, createdAt',
+  messages: '++id, appId, createdAt',
+  appData: '++id, appId, type, createdAt',
+});
+
+// 简易 useLiveQuery
+function useLiveQuery(queryFn, deps = []) {
+  const [data, setData] = useState(undefined);
+  const refresh = () => { Promise.resolve(queryFn()).then(setData); };
+  useEffect(() => {
+    refresh();
+    const interval = setInterval(refresh, 300);
+    return () => clearInterval(interval);
+  }, deps);
+  return data;
+}
+
+const nanoid = () => Math.random().toString(36).slice(2, 10);
+
+// ============ 意图识别 ============
+const THEME_MAP = {
+  '红': 'red', '红色': 'red', '蓝': 'blue', '蓝色': 'blue',
+  '紫': 'purple', '紫色': 'purple', '绿': 'green', '绿色': 'green',
+  '橙': 'orange', '橙色': 'orange', '粉': 'pink', '粉色': 'pink',
+};
+const FEATURE_MAP = { '导出': 'export', '设置': 'settings', '历史': 'history', '清空': 'clear' };
+
+function detectTheme(t) { for (const k in THEME_MAP) if (t.includes(k)) return THEME_MAP[k]; return null; }
+function detectFeature(t) { for (const k in FEATURE_MAP) if (t.includes(k)) return FEATURE_MAP[k]; return null; }
+
+function parseIntent(input, hasActiveApp) {
+  const text = input.trim().toLowerCase();
+  if (/做|创建|生成|搭|建|来一个|帮我做/.test(text) || /ai|助手|工具|应用/.test(text)) {
+    if (/对话|聊天|问答|助手|chat/.test(text)) {
+      return { action: 'create', template: 'ChatAssistant',
+        config: { theme: detectTheme(text) || 'blue', welcome: '你好！我是你的 AI 助手，有什么可以帮你？', features: [] },
+        replySteps: [
+          '我理解你想做一个 AI 对话助手，支持多轮对话。',
+          '我会生成：消息列表、输入框、发送按钮、清空功能。',
+          '应用已生成，右侧可预览和交互。你可以说「换个紫色主题」或「加一个导出功能」来调整。',
+        ]};
+    }
+    if (/写作|文案|文章|润色|write/.test(text)) {
+      return { action: 'create', template: 'AIWriter',
+        config: { theme: detectTheme(text) || 'purple', welcome: '输入主题，我帮你生成内容', features: [] },
+        replySteps: [
+          '我理解你想做一个 AI 写作工具，输入主题后生成文章。',
+          '我会生成：主题输入框、生成按钮、结果展示区。',
+          '应用已生成，右侧可预览。试试说「加一个导出功能」。',
+        ]};
+    }
+    if (/图像|画图|图片|文生图|image/.test(text)) {
+      return { action: 'create', template: 'AIImageGen',
+        config: { theme: detectTheme(text) || 'green', welcome: '输入提示词，生成图像', features: [] },
+        replySteps: [
+          '我理解你想做一个 AI 图像生成器，输入提示词生成图片。',
+          '我会生成：提示词输入框、生成按钮、图像展示区。',
+          '应用已生成，右侧可预览。',
+        ]};
+    }
+  }
+  if (hasActiveApp && /主题|颜色|换|变|改成/.test(text)) {
+    const theme = detectTheme(text);
+    if (theme) return { action: 'updateTheme', config: { theme },
+      replySteps: [`正在调整配色方案为 ${theme}...`, '主题已更新，右侧预览已同步。'] };
+  }
+  if (hasActiveApp && /加|添加|增加|要一个/.test(text)) {
+    const feature = detectFeature(text);
+    if (feature) return { action: 'toggleFeature', config: { feature },
+      replySteps: [`正在为应用添加 ${feature} 功能...`, '功能已添加，右侧预览已更新。'] };
+  }
+  return { action: 'unknown',
+    replySteps: [
+      '我可以帮你生成 AI 类应用。你可以试试说：',
+      '· 做一个 AI 对话助手',
+      '· 做一个 AI 写作工具',
+      '· 做一个 AI 图像生成器',
+      '生成后可以说「换个紫色主题」或「加一个导出功能」。',
+    ]};
+}
+
+// ============ 主题样式映射 ============
+const THEME_BG = { blue:'bg-blue-50', purple:'bg-purple-50', green:'bg-green-50', red:'bg-red-50', orange:'bg-orange-50', pink:'bg-pink-50' };
+const THEME_BTN = { blue:'bg-blue-500', purple:'bg-purple-500', green:'bg-green-500', red:'bg-red-500', orange:'bg-orange-500', pink:'bg-pink-500' };
+
+// ============ 模板：AI 对话助手 ============
+function ChatAssistant({ appId, config }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const theme = config?.theme || 'blue';
+  const features = config?.features || [];
+
+  useEffect(() => {
+    db.appData.where({ appId, type: 'message' }).sortBy('createdAt').then(setMessages);
+  }, [appId]);
+
+  const send = async () => {
+    if (!input.trim()) return;
+    const userMsg = { id: nanoid(), appId, type: 'message', content: { role:'user', text: input }, createdAt: Date.now() };
+    await db.appData.add(userMsg);
+    setMessages(p => [...p, userMsg]);
+    const cur = input; setInput('');
+    setTimeout(async () => {
+      const aiMsg = { id: nanoid(), appId, type:'message',
+        content: { role:'assistant', text: `这是模拟回复：你说了「${cur}」。接入真实 API 后会返回真实内容。` },
+        createdAt: Date.now() };
+      await db.appData.add(aiMsg);
+      setMessages(p => [...p, aiMsg]);
+    }, 500);
+  };
+
+  const clear = async () => {
+    await db.appData.where({ appId, type:'message' }).delete();
+    setMessages([]);
+  };
+
+  const exportChat = () => {
+    const text = messages.map(m => `[${m.content.role}] ${m.content.text}`).join('\n');
+    const blob = new Blob([text], { type:'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'chat.txt'; a.click();
+  };
+
+  return (
+    <div className={`h-full flex flex-col ${THEME_BG[theme]||''}`}>
+      <div className="flex items-center justify-between px-4 py-2 bg-white border-b">
+        <span className="font-medium">AI 对话助手</span>
+        <div className="flex gap-2">
+          {features.includes('export') && (
+            <button onClick={exportChat} className="p-1.5 rounded hover:bg-gray-100" title="导出">⬇</button>
+          )}
+          <button onClick={clear} className="p-1.5 rounded hover:bg-gray-100" title="清空">🗑</button>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {messages.length === 0 && (
+          <div className="text-center text-gray-400 mt-8 text-sm">{config?.welcome || '开始对话吧'}</div>
+        )}
+        {messages.map(m => (
+          <div key={m.id} className={m.content.role==='user' ? 'text-right' : 'text-left'}>
+            <div className={`inline-block px-3 py-2 rounded-lg max-w-[80%] text-sm ${
+              m.content.role==='user' ? `${THEME_BTN[theme]||'bg-blue-500'} text-white` : 'bg-white shadow'
+            }`}>{m.content.text}</div>
+          </div>
+        ))}
+      </div>
+      <div className="p-3 border-t bg-white flex gap-2">
+        <input value={input} onChange={e=>setInput(e.target.value)}
+          onKeyDown={e=>e.key==='Enter'&&send()}
+          className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none"
+          placeholder="输入消息..." />
+        <button onClick={send} className={`px-4 py-2 text-white rounded-lg text-sm ${THEME_BTN[theme]||'bg-blue-500'}`}>发送</button>
+      </div>
+    </div>
+  );
+}
+
+// ============ 模板：AI 写作工具 ============
+function AIWriter({ appId, config }) {
+  const [topic, setTopic] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const theme = config?.theme || 'purple';
+  const features = config?.features || [];
+
+  useEffect(() => {
+    db.appData.where({ appId, type:'article' }).reverse().sortBy('createdAt').then(setResults);
+  }, [appId]);
+
+  const generate = async () => {
+    if (!topic.trim()) return;
+    setLoading(true);
+    const t = topic;
+    setTimeout(async () => {
+      const article = { id: nanoid(), appId, type:'article',
+        content: { topic: t, text: `# ${t}\n\n这是关于「${t}」的模拟生成内容。\n\n接入真实 LLM API 后，这里会根据主题生成完整文章。当前为无 API Key 约束下的演示文本。\n\n你可以继续输入新主题生成更多内容。` },
+        createdAt: Date.now() };
+      await db.appData.add(article);
+      setResults(p => [article, ...p]);
+      setTopic(''); setLoading(false);
+    }, 800);
+  };
+
+  const exportAll = () => {
+    const text = results.map(r => r.content.text).join('\n\n---\n\n');
+    const blob = new Blob([text], { type:'text/markdown' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'articles.md'; a.click();
+  };
+
+  return (
+    <div className="h-full flex flex-col bg-white">
+      <div className="flex items-center justify-between px-4 py-2 border-b">
+        <span className="font-medium">AI 写作工具</span>
+        {features.includes('export') && (
+          <button onClick={exportAll} className="p-1.5 rounded hover:bg-gray-100" title="导出">⬇</button>
+        )}
+      </div>
+      <div className="p-4 border-b flex gap-2">
+        <input value={topic} onChange={e=>setTopic(e.target.value)}
+          onKeyDown={e=>e.key==='Enter'&&generate()}
+          className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none"
+          placeholder="输入写作主题，如：人工智能的未来" />
+        <button onClick={generate} disabled={loading}
+          className={`px-4 py-2 text-white rounded-lg text-sm ${THEME_BTN[theme]||'bg-purple-500'} disabled:opacity-50`}>
+          {loading ? '生成中...' : '生成'}
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {results.length === 0 && (
+          <div className="text-center text-gray-400 mt-8 text-sm">输入主题，开始生成内容</div>
+        )}
+        {results.map(r => (
+          <div key={r.id} className="p-4 bg-gray-50 rounded-lg border">
+            <div className="text-xs text-gray-500 mb-2">主题：{r.content.topic}</div>
+            <pre className="whitespace-pre-wrap text-sm font-sans">{r.content.text}</pre>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============ 模板：AI 图像生成器 ============
+function AIImageGen({ appId, config }) {
+  const [prompt, setPrompt] = useState('');
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const theme = config?.theme || 'green';
+
+  useEffect(() => {
+    db.appData.where({ appId, type:'image' }).reverse().sortBy('createdAt').then(setImages);
+  }, [appId]);
+
+  const generate = async () => {
+    if (!prompt.trim()) return;
+    setLoading(true);
+    const p = prompt;
+    setTimeout(async () => {
+      const colors = ['3b82f6','8b5cf6','10b981','f59e0b','ef4444'];
+      const color = colors[Math.floor(Math.random()*colors.length)];
+      const img = { id: nanoid(), appId, type:'image',
+        content: { prompt: p, url: `https://placehold.co/512x512/${color}/white?text=${encodeURIComponent(p.slice(0,20))}` },
+        createdAt: Date.now() };
+      await db.appData.add(img);
+      setImages(prev => [img, ...prev]);
+      setPrompt(''); setLoading(false);
+    }, 800);
+  };
+
+  return (
+    <div className="h-full flex flex-col bg-white">
+      <div className="px-4 py-2 border-b font-medium">AI 图像生成器</div>
+      <div className="p-4 border-b flex gap-2">
+        <input value={prompt} onChange={e=>setPrompt(e.target.value)}
+          onKeyDown={e=>e.key==='Enter'&&generate()}
+          className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none"
+          placeholder="输入提示词，如：一只在星空下的猫" />
+        <button onClick={generate} disabled={loading}
+          className={`px-4 py-2 text-white rounded-lg text-sm ${THEME_BTN[theme]||'bg-green-500'} disabled:opacity-50`}>
+          {loading ? '生成中...' : '生成'}
+        </button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4">
+        {images.length === 0 && (
+          <div className="text-center text-gray-400 mt-8 text-sm">输入提示词，生成图像</div>
+        )}
+        <div className="grid grid-cols-2 gap-4">
+          {images.map(img => (
+            <div key={img.id} className="border rounded-lg overflow-hidden">
+              <img src={img.content.url} alt={img.content.prompt} className="w-full" />
+              <div className="p-2 text-xs text-gray-600 truncate">{img.content.prompt}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============ 对话面板 ============
+function ChatPanel({ activeAppId, onCreateApp, onUpdateApp }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    const q = activeAppId ? { appId: activeAppId } : { appId: null };
+    db.messages.where(q).sortBy('createdAt').then(setMessages);
+  }, [activeAppId]);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }); }, [messages]);
+
+  const pushMessage = async (role, content) => {
+    const msg = { appId: activeAppId ?? null, role, content, createdAt: Date.now() };
+    await db.messages.add(msg);
+    setMessages(p => [...p, msg]);
+  };
+
+  const send = async () => {
+    if (!input.trim() || busy) return;
+    const text = input; setInput(''); setBusy(true);
+    await pushMessage('user', text);
+
+    const result = parseIntent(text, !!activeAppId);
+    for (let i = 0; i < result.replySteps.length; i++) {
+      await new Promise(r => setTimeout(r, 400));
+      await pushMessage('assistant', result.replySteps[i]);
+    }
+    
+    if (result.action === 'create' && result.template && result.config) {
+      const name = result.template === 'ChatAssistant' ? 'AI 对话助手'
+        : result.template === 'AIWriter' ? 'AI 写作工具' : 'AI 图像生成器';
+      await onCreateApp(result.template, result.config, name);
+    } else if (result.action === 'updateTheme' && activeAppId) {
+      await onUpdateApp(activeAppId, { config: { theme: result.config.theme } });
+    } else if (result.action === 'toggleFeature' && activeAppId) {
+      const app = await db.apps.get(activeAppId);
+      if (app) {
+        const features = new Set(app.config.features || []);
+        features.add(result.config.feature);
+        await onUpdateApp(activeAppId, { config: { ...app.config, features: Array.from(features) } });
+      }
+    }
+    setBusy(false);
+  };
+
+  return (
+    <div className="h-full flex flex-col bg-white border-r">
+      <div className="px-4 py-3 border-b font-semibold text-gray-800">Atoms 工作区</div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {messages.length === 0 && (
+          <div className="text-sm text-gray-500 space-y-2">
+            <p className="font-medium text-gray-700">👋 试试这样描述你的应用：</p>
+            {['做一个 AI 对话助手','做一个 AI 写作工具','做一个 AI 图像生成器'].map(t => (
+              <button key={t} onClick={()=>setInput(t)}
+                className="block text-left px-3 py-2 bg-gray-50 rounded hover:bg-gray-100 w-full">{t}</button>
+            ))}
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div key={i} className={m.role === 'user' ? 'text-right' : ''}>
+            <div className={`inline-block px-3 py-2 rounded-lg max-w-[85%] text-sm whitespace-pre-wrap ${
+              m.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800'
+            }`}>{m.content}</div>
+          </div>
+        ))}
+        {busy && <div className="text-xs text-gray-400">智能体思考中...</div>}
+        <div ref={bottomRef} />
+      </div>
+      <div className="p-3 border-t flex gap-2">
+        <input value={input} onChange={e=>setInput(e.target.value)}
+          onKeyDown={e=>e.key==='Enter'&&send()}
+          className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none"
+          placeholder="描述你想要的应用..." />
+        <button onClick={send} disabled={busy}
+          className="px-3 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50">➤</button>
+      </div>
+    </div>
+  );
+}
+
+// ============ 预览面板 ============
+function PreviewPanel({ app }) {
+  if (!app) {
+    return (
+      <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400 text-sm">
+        <div className="text-center">左侧描述你的应用，这里会实时预览</div>
+      </div>
+    );
+  }
+  const Comp = app.template === 'ChatAssistant' ? ChatAssistant
+    : app.template === 'AIWriter' ? AIWriter : AIImageGen;
+  return (
+    <div className="h-full flex flex-col">
+      <div className="px-4 py-2 border-b bg-white flex items-center justify-between text-sm">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
+            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+            <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
+          </div>
+          <span className="text-gray-600 ml-2">{app.name}</span>
+        </div>
+      </div>
+      <div className="flex-1 overflow-hidden">
+        <Comp appId={app.id} config={app.config} />
+      </div>
+    </div>
+  );
+}
+
+// ============ 应用侧栏 ============
+function AppSidebar({ activeAppId, onSelect, onDelete }) {
+  const apps = useLiveQuery(() => db.apps.reverse().sortBy('createdAt'), []) || [];
+  return (
+    <div className="w-56 bg-gray-50 border-r flex flex-col">
+      <div className="px-3 py-3 text-xs font-semibold text-gray-500 uppercase">我的应用</div>
+      <div className="flex-1 overflow-y-auto px-2 space-y-1">
+        {apps.length === 0 && <div className="text-xs text-gray-400 px-2 py-4">还没有应用</div>}
+        {apps.map(app => (
+          <div key={app.id}
+            className={`group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-sm ${
+              activeAppId === app.id ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
+            }`}
+            onClick={()=>onSelect(app.id)}>
+            <span className="truncate">{app.name}</span>
+            <button onClick={e=>{e.stopPropagation(); onDelete(app.id);}}
+              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500">✕</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============ 工作区主编排 ============
+function Workspace() {
+  const [activeAppId, setActiveAppId] = useState(null);
+  const activeApp = useLiveQuery(
+    () => activeAppId ? db.apps.get(activeAppId) : Promise.resolve(null),
+    [activeAppId]
+  );
+
+  const createApp = async (template, config, name) => {
+    const id = await db.apps.add({ name, template, config, createdAt: Date.now() });
+    setActiveAppId(id);
+    return id;
+  };
+
+  const updateApp = async (id, patch) => {
+    const app = await db.apps.get(id);
+    if (!app) return;
+    await db.apps.update(id, { config: { ...app.config, ...patch.config } });
+  };
+
+  const deleteApp = async (id) => {
+    await db.apps.delete(id);
+    await db.appData.where({ appId: id }).delete();
+    await db.messages.where({ appId: id }).delete();
+    if (activeAppId === id) setActiveAppId(null);
+  };
+
+  return (
+    <div className="h-screen flex bg-white">
+      <AppSidebar activeAppId={activeAppId} onSelect={setActiveAppId} onDelete={deleteApp} />
+      <div className="w-96 flex-shrink-0">
+        <ChatPanel activeAppId={activeAppId} onCreateApp={createApp} onUpdateApp={updateApp} />
+      </div>
+      <div className="flex-1">
+        <PreviewPanel app={activeApp} />
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Workspace />);
+</script>
+</body>
+</html>
