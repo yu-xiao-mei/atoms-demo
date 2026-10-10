@@ -69,7 +69,7 @@
     const ZHIPU_MODEL = 'glm-4-flash';
     const LLM_TIMEOUT = 20000;
 
-    async function callLLM(messages, temperature = 0.7) {
+    async function callLLM(messages, temperature = 0.7, extra = {}) {
       const key = String(ZHIPU_API_KEY).trim();
       if (!key || key === '你的Key' || /[^\x20-\x7E]/.test(key)) {
         throw new Error('请先在 index.html 顶部把 ZHIPU_API_KEY 替换为你的智谱 API Key（只能包含英文字符，可在 https://open.bigmodel.cn/ 获取）');
@@ -80,7 +80,7 @@
         const res = await fetch(ZHIPU_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ZHIPU_API_KEY}` },
-          body: JSON.stringify({ model: ZHIPU_MODEL, messages, temperature }),
+          body: JSON.stringify({ model: ZHIPU_MODEL, messages, temperature, ...extra }),
           signal: controller.signal,
         });
         if (!res.ok) {
@@ -103,7 +103,7 @@
         result: { action: 'create', template: 'AIWriter', name: 'AI 写作助手',
           config: { theme: 'purple', welcome: '输入主题，AI 会为你生成文章' },
           replySteps: ['我理解你想做一个 AI 写作助手。', '生成：主题输入框、生成按钮、文章展示区。', '应用已生成，右侧可预览。'] } },
-      { match: /代码|dockerfile|docker|脚本/i,
+      { match: /代码|dockerfile|docker|脚本|配置文件|nginx|sql|yaml|conf/i,
         result: { action: 'create', template: 'AICoder', name: 'AI 代码助手',
           config: { theme: 'blue', welcome: '描述你的需求，例如：写一个 Node 应用的 Dockerfile' },
           replySteps: ['我理解你想做一个 AI 代码助手。', '生成：需求输入框、生成按钮、代码展示区。', '应用已生成，右侧可预览。'] } },
@@ -231,7 +231,26 @@
       const s = text.replace(/```(?:json)?/gi, '').replace(/```/g, '');
       const a = s.indexOf('{'); const b = s.lastIndexOf('}');
       if (a < 0 || b <= a) throw new Error('模型未返回有效 JSON');
-      return JSON.parse(s.slice(a, b + 1));
+      const body = s.slice(a, b + 1);
+      try { return JSON.parse(body); } catch (e) {
+        // 常见修复：中文引号、单引号、未加引号的键、尾逗号
+        const fixed = body.replace(/[“”]/g, '"').replace(/'/g, '"')
+          .replace(/([{,]\s*)([A-Za-z_]\w*)\s*:/g, '$1"$2":').replace(/,\s*([}\]])/g, '$1');
+        try { return JSON.parse(fixed); } catch (e2) { return fallbackIntent(body); }
+      }
+    }
+    // 兜底：JSON 无法解析时，用正则提取关键字段
+    function fallbackIntent(raw) {
+      const pick = (k) => (raw.match(new RegExp(`"?${k}"?\\s*:\\s*"([^"]*)"`)) || [])[1];
+      const action = pick('action') || 'create';
+      const tpl = pick('template');
+      return {
+        action,
+        template: TEMPLATES.includes(tpl) ? tpl : 'ChatAssistant',
+        name: pick('name') || 'AI 应用',
+        config: { theme: pick('theme') || 'blue', welcome: pick('welcome') || '', feature: pick('feature') || 'export' },
+        replySteps: ['已理解你的需求。', '应用已生成，右侧可预览。'],
+      };
     }
     async function parseIntentWithLLM(input, hasApp) {
       const system = `你是应用生成智能体。用户用自然语言描述想要的应用，你判断意图并输出严格 JSON。
@@ -258,7 +277,7 @@
 {"action":"unknown","replySteps":["提示"]}
 
 当前有激活应用：${hasApp ? '是' : '否'}`;
-      const raw = await callLLM([{ role: 'system', content: system }, { role: 'user', content: input }], 0.3);
+      const raw = await callLLM([{ role: 'system', content: system }, { role: 'user', content: input }], 0.1, { response_format: { type: 'json_object' } });
       return extractJSON(raw);
     }
 
@@ -500,7 +519,13 @@
             setWaitingLLM(true);
             intent = await parseIntentWithLLM(text, hasApp);
           }
-          const steps = Array.isArray(intent.replySteps) && intent.replySteps.length ? intent.replySteps : ['好的。'];
+          const rawSteps = Array.isArray(intent.replySteps) ? intent.replySteps : intent.replySteps ? [intent.replySteps] : [];
+          const steps = rawSteps
+            .map((s) => (typeof s === 'string' ? s : (s && (s.text || s.content || s.prompt || s.desc)) || ''))
+            .map((s) => String(s).trim())
+            // 过滤只剩标点或空白的碎片，避免出现「好的，，，，」这类无意义回复
+            .filter((s) => s && /[\u4e00-\u9fa5A-Za-z0-9]/.test(s));
+          if (!steps.length) steps.push('好的，已处理你的需求。');
           if (intent.action === 'create') {
             const template = TEMPLATES.includes(intent.template) ? intent.template : 'ChatAssistant';
             const cfg = intent.config || {};
@@ -518,7 +543,11 @@
             const f = intent.config?.feature || 'export';
             const fs = activeApp.config.features || [];
             if (!fs.includes(f)) await db.apps.update(activeApp.id, { config: { ...activeApp.config, features: [...fs, f] } });
-          } else if (intent.action !== 'unknown' && !hasApp) {
+          } else if (intent.action === 'unknown') {
+            steps.splice(0, steps.length,
+              '我没太理解这个需求。这里是用来「生成应用」的，不是直接回答问题的地方。',
+              '你可以说：做一个 AI 代码助手。生成后在右侧输入「写一个 nginx 配置文件」，就能拿到真实结果。');
+          } else if (!hasApp) {
             steps.splice(0, steps.length, '请先创建一个应用，再修改主题或功能。');
           }
           for (const s of steps) await db.messages.add({ appId: targetId, role: 'assistant', content: s });
