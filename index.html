@@ -1,171 +1,241 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Atoms Demo - AI 应用生成工作区</title>
-<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; height: 100vh; overflow: hidden; }
-  #root { height: 100vh; }
-  .h-screen { height: 100vh; } .h-full { height: 100%; }
-  .flex { display: flex; } .flex-col { flex-direction: column; } .flex-1 { flex: 1; }
-  .items-center { align-items: center; } .justify-between { justify-content: space-between; } .justify-center { justify-content: center; }
-  .gap-1 { gap: 4px; } .gap-2 { gap: 8px; } .gap-4 { gap: 16px; }
-  .overflow-hidden { overflow: hidden; } .overflow-y-auto { overflow-y: auto; }
-  .w-56 { width: 224px; } .w-96 { width: 384px; } .flex-shrink-0 { flex-shrink: 0; }
-  .border-r { border-right: 1px solid #e5e7eb; } .border-b { border-bottom: 1px solid #e5e7eb; }
-  .border-t { border-top: 1px solid #e5e7eb; } .border { border: 1px solid #e5e7eb; }
-  .rounded { border-radius: 6px; } .rounded-lg { border-radius: 10px; } .rounded-full { border-radius: 9999px; }
-  .p-1\.5 { padding: 6px; } .p-2 { padding: 8px; } .p-3 { padding: 12px; } .p-4 { padding: 16px; }
-  .px-2 { padding-left: 8px; padding-right: 8px; } .px-3 { padding-left: 12px; padding-right: 12px; }
-  .px-4 { padding-left: 16px; padding-right: 16px; }
-  .py-2 { padding-top: 8px; padding-bottom: 8px; } .py-3 { padding-top: 12px; padding-bottom: 12px; }
-  .py-4 { padding-top: 16px; padding-bottom: 16px; }
-  .space-y-1 > * + * { margin-top: 4px; } .space-y-2 > * + * { margin-top: 8px; }
-  .space-y-3 > * + * { margin-top: 12px; } .space-y-4 > * + * { margin-top: 16px; }
-  .text-xs { font-size: 12px; } .text-sm { font-size: 14px; }
-  .font-medium { font-weight: 500; } .font-semibold { font-weight: 600; }
-  .uppercase { text-transform: uppercase; } .text-center { text-align: center; }
-  .text-right { text-align: right; } .text-left { text-align: left; }
-  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .whitespace-pre-wrap { white-space: pre-wrap; } .font-sans { font-family: inherit; }
-  .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-  .bg-white { background: #fff; } .bg-gray-50 { background: #f9fafb; } .bg-gray-100 { background: #f3f4f6; }
-  .bg-blue-50 { background: #eff6ff; } .bg-blue-100 { background: #dbeafe; } .bg-blue-500 { background: #3b82f6; }
-  .bg-purple-50 { background: #faf5ff; } .bg-purple-500 { background: #8b5cf6; }
-  .bg-green-50 { background: #f0fdf4; } .bg-green-500 { background: #10b981; }
-  .bg-red-50 { background: #fef2f2; } .bg-red-500 { background: #ef4444; }
-  .bg-orange-50 { background: #fff7ed; } .bg-orange-500 { background: #f59e0b; }
-  .bg-pink-50 { background: #fdf2f8; } .bg-pink-500 { background: #ec4899; }
-  .bg-red-400 { background: #f87171; } .bg-yellow-400 { background: #fbbf24; } .bg-green-400 { background: #4ade80; }
-  .text-white { color: #fff; } .text-gray-400 { color: #9ca3af; } .text-gray-500 { color: #6b7280; }
-  .text-gray-600 { color: #4b5563; } .text-gray-700 { color: #374151; } .text-gray-800 { color: #1f2937; }
-  .text-blue-700 { color: #1d4ed8; } .text-red-500 { color: #ef4444; }
-  .hover\:bg-gray-100:hover { background: #f3f4f6; } .hover\:text-red-500:hover { color: #ef4444; }
-  .cursor-pointer { cursor: pointer; } .outline-none { outline: none; }
-  .opacity-0 { opacity: 0; } .group:hover .group-hover\:opacity-100 { opacity: 1; }
-  .w-2\.5 { width: 10px; } .h-2\.5 { height: 10px; } .ml-2 { margin-left: 8px; }
-  .mt-8 { margin-top: 32px; } .mb-2 { margin-bottom: 8px; }
-  .max-w-\[85\%\] { max-width: 85%; } .max-w-\[80\%\] { max-width: 80%; }
-  .inline-block { display: inline-block; } .shadow { box-shadow: 0 1px 3px rgba(0,0,0,.1); }
-  .grid { display: grid; } .grid-cols-2 { grid-template-columns: 1fr 1fr; }
-  .w-full { width: 100%; } .block { display: block; } .disabled\:opacity-50:disabled { opacity: .5; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Atoms Demo - AI 应用生成工作区</title>
+  <!--
+    部署说明：
+    1. 在 https://open.bigmodel.cn/ 注册并创建 API Key
+    2. 把 Key 填入下方脚本顶部的 ZHIPU_API_KEY 常量
+    3. 把 index.html 上传到 GitHub 仓库根目录
+    4. 仓库 Settings → Pages → Source: main / (root) → Save
+    5. 等 1-2 分钟，访问 https://用户名.github.io/仓库名/
+  -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:#1f2937;background:#fff}
+    button{font:inherit;border:none;background:none;cursor:pointer}
+    input,textarea{font:inherit;border:none}
+    .flex{display:flex}.flex-col{flex-direction:column}.flex-1{flex:1 1 0%;min-width:0;min-height:0}
+    .h-screen{height:100vh}.h-full{height:100%}.w-56{width:14rem}.w-96{width:24rem}.w-full{width:100%}
+    .flex-shrink-0{flex-shrink:0}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}
+    .items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}
+    .justify-end{justify-content:flex-end}.relative{position:relative}
+    .border{border:1px solid #e5e7eb}.border-r{border-right:1px solid #e5e7eb}.border-b{border-bottom:1px solid #e5e7eb}.border-t{border-top:1px solid #e5e7eb}
+    .rounded{border-radius:.375rem}.rounded-lg{border-radius:.6rem}.rounded-full{border-radius:9999px}
+    .p-1\.5{padding:.375rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}
+    .px-2{padding-left:.5rem;padding-right:.5rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}
+    .py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}
+    .space-y-1>*+*{margin-top:.25rem}.space-y-2>*+*{margin-top:.5rem}.space-y-3>*+*{margin-top:.75rem}.space-y-4>*+*{margin-top:1rem}
+    .gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-4{gap:1rem}.ml-2{margin-left:.5rem}.mt-8{margin-top:2rem}.mb-2{margin-bottom:.5rem}
+    .text-xs{font-size:.75rem}.text-sm{font-size:.875rem;line-height:1.5}.text-lg{font-size:1.1rem}
+    .text-center{text-align:center}.text-right{text-align:right}.text-left{text-align:left}
+    .font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase;letter-spacing:.06em}
+    .truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.whitespace-pre-wrap{white-space:pre-wrap;word-break:break-word}
+    .font-sans{font-family:inherit}.font-mono{font-family:"SFMono-Regular",Consolas,Menlo,monospace}
+    .bg-white{background:#fff}.bg-gray-50{background:#f9fafb}.bg-gray-100{background:#f3f4f6}.bg-gray-900{background:#111827}
+    .bg-blue-50{background:#eff6ff}.bg-blue-100{background:#dbeafe}.bg-blue-500{background:#3b82f6}
+    .bg-purple-50{background:#faf5ff}.bg-purple-100{background:#f3e8ff}.bg-purple-500{background:#a855f7}
+    .bg-green-50{background:#f0fdf4}.bg-green-100{background:#dcfce7}.bg-green-500{background:#22c55e}
+    .bg-red-50{background:#fef2f2}.bg-red-100{background:#fee2e2}.bg-red-500{background:#ef4444}
+    .bg-orange-50{background:#fff7ed}.bg-orange-100{background:#ffedd5}.bg-orange-500{background:#f97316}
+    .bg-pink-50{background:#fdf2f8}.bg-pink-100{background:#fce7f3}.bg-pink-500{background:#ec4899}
+    .text-white{color:#fff}.text-gray-100{color:#f3f4f6}.text-gray-400{color:#9ca3af}.text-gray-500{color:#6b7280}.text-gray-600{color:#4b5563}
+    .text-gray-700{color:#374151}.text-gray-800{color:#1f2937}.text-blue-700{color:#1d4ed8}.text-red-500{color:#ef4444}
+    .hover\:bg-gray-100:hover{background:#f3f4f6}.cursor-pointer{cursor:pointer}.outline-none{outline:none}
+    .opacity-0{opacity:0}.disabled\:opacity-50:disabled{opacity:.5;cursor:not-allowed}
+    .group:hover .group-hover\:opacity-100{opacity:1}
+    .inline-block{display:inline-block}.shadow{box-shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06)}
+    .grid{display:grid}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .max-w-\[85\%\]{max-width:85%}.max-w-\[80\%\]{max-width:80%}
+    .dot{width:.7rem;height:.7rem;border-radius:9999px;display:inline-block}
+    input:focus,textarea:focus{box-shadow:0 0 0 2px #93c5fd}
+    button:focus-visible{outline:2px solid #3b82f6;outline-offset:2px}
+  </style>
 </head>
 <body>
-<div id="root"></div>
+  <div id="root"></div>
+  <script type="text/babel" data-presets="react">
+    const { useState, useEffect, useRef } = React;
 
-<script type="text/babel" data-presets="react">
-const { useState, useEffect, useRef } = React;
+    // ===== 1. LLM 封装 =====
+    // 👇👇👇 在这里替换为你自己的智谱 API Key 👇👇👇
+    const ZHIPU_API_KEY = '你的Key';
+    const ZHIPU_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+    const ZHIPU_MODEL = 'glm-4-flash';
+    const LLM_TIMEOUT = 20000;
 
-// ⚠️ 智谱 API Key
-const ZHIPU_API_KEY = '5d7e3c5b8fab407f82041ae71afa5be5.b2Jk2NSF5s7kWlHf';
-const ZHIPU_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
-const ZHIPU_MODEL = 'glm-4-flash';
-const LLM_TIMEOUT = 20000;
-
-async function callLLM(messages, temperature = 0.7) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), LLM_TIMEOUT);
-  try {
-    const res = await fetch(ZHIPU_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ZHIPU_API_KEY}` },
-      body: JSON.stringify({ model: ZHIPU_MODEL, messages, temperature }),
-      signal: controller.signal,
-    });
-    if (!res.ok) {
-      const t = await res.text();
-      throw new Error(`API 错误 ${res.status}: ${t.slice(0, 200)}`);
-    }
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content || '';
-  } catch (e) {
-    if (e.name === 'AbortError') throw new Error('请求超时，请重试');
-    throw e;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-// ============ 本地规则（预设按钮秒回） ============
-const LOCAL_RULES = [
-  {
-    match: /写作|文章|文案/,
-    result: { action: 'create', template: 'AIWriter', name: 'AI 写作助手',
-      config: { theme: 'purple', welcome: '输入主题，AI 会为你生成文章' },
-      replySteps: [
-        '我理解你想做一个 AI 写作助手。',
-        '生成：主题输入框、生成按钮、文章展示区。',
-        '应用已生成，右侧可预览。',
-      ] },
-  },
-  {
-    match: /代码|dockerfile|docker|脚本/,
-    result: { action: 'create', template: 'AICoder', name: 'AI 代码助手',
-      config: { theme: 'blue', welcome: '描述你的编程需求' },
-      replySteps: [
-        '我理解你想做一个 AI 代码助手。',
-        '生成：需求输入框、生成按钮、代码展示区。',
-        '应用已生成，右侧可预览。',
-      ] },
-  },
-  {
-    match: /问答|对话|聊天|助手/,
-    result: { action: 'create', template: 'ChatAssistant', name: 'AI 问答助手',
-      config: { theme: 'green', welcome: '你好！有什么可以帮你？' },
-      replySteps: [
-        '我理解你想做一个 AI 问答助手。',
-        '生成：消息列表、输入框、发送按钮。',
-        '应用已生成，右侧可预览。',
-      ] },
-  },
-];
-
-const THEME_KEYWORDS = { 红:'red', 蓝:'blue', 紫:'purple', 绿:'green', 橙:'orange', 粉:'pink' };
-
-function tryLocalRule(input, hasApp) {
-  const text = input.trim();
-  // 主题切换
-  if (hasApp && /主题|颜色|换|改成/.test(text)) {
-    for (const k in THEME_KEYWORDS) {
-      if (text.includes(k)) {
-        return { action: 'updateTheme', config: { theme: THEME_KEYWORDS[k] },
-          replySteps: [`已切换为${k}色主题。`] };
+    async function callLLM(messages, temperature = 0.7) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), LLM_TIMEOUT);
+      try {
+        const res = await fetch(ZHIPU_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ZHIPU_API_KEY}` },
+          body: JSON.stringify({ model: ZHIPU_MODEL, messages, temperature }),
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error(`API 错误 ${res.status}: ${t.slice(0, 200)}`);
+        }
+        const data = await res.json();
+        return data.choices?.[0]?.message?.content || '';
+      } catch (e) {
+        if (e.name === 'AbortError') throw new Error('请求超时，请重试');
+        throw e;
+      } finally {
+        clearTimeout(timer);
       }
     }
-  }
-  // 加功能
-  if (hasApp && /加|添加|增加/.test(text) && /导出/.test(text)) {
-    return { action: 'toggleFeature', config: { feature: 'export' },
-      replySteps: ['已添加导出功能。'] };
-  }
-  // 创建应用
-  for (const rule of LOCAL_RULES) {
-    if (rule.match.test(text)) {
-      const r = { ...rule.result };
-      // 主题色覆盖
-      for (const k in THEME_KEYWORDS) {
-        if (text.includes(k)) { r.config = { ...r.config, theme: THEME_KEYWORDS[k] }; break; }
-      }
-      return r;
-    }
-  }
-  return null;
-}
 
-// ============ 智能体：LLM 解析（仅自由输入时调用） ============
-async function parseIntentWithLLM(userInput, currentApp) {
-  const sys = `你是应用生成智能体。用户用自然语言描述想要的应用，你判断意图并输出严格 JSON。
+    // ===== 2. 本地规则（预设秒回）=====
+    const LOCAL_RULES = [
+      { match: /写作|文章|文案/,
+        result: { action: 'create', template: 'AIWriter', name: 'AI 写作助手',
+          config: { theme: 'purple', welcome: '输入主题，AI 会为你生成文章' },
+          replySteps: ['我理解你想做一个 AI 写作助手。', '生成：主题输入框、生成按钮、文章展示区。', '应用已生成，右侧可预览。'] } },
+      { match: /代码|dockerfile|docker|脚本/i,
+        result: { action: 'create', template: 'AICoder', name: 'AI 代码助手',
+          config: { theme: 'blue', welcome: '描述你的需求，例如：写一个 Node 应用的 Dockerfile' },
+          replySteps: ['我理解你想做一个 AI 代码助手。', '生成：需求输入框、生成按钮、代码展示区。', '应用已生成，右侧可预览。'] } },
+      { match: /问答|对话|聊天|助手/,
+        result: { action: 'create', template: 'ChatAssistant', name: 'AI 问答助手',
+          config: { theme: 'green', welcome: '你好！有什么可以帮你？' },
+          replySteps: ['我理解你想做一个 AI 问答助手。', '生成：多轮对话消息列表、输入框、清空按钮。', '应用已生成，右侧可预览。'] } },
+    ];
+    const THEME_KEYWORDS = { 红: 'red', 蓝: 'blue', 紫: 'purple', 绿: 'green', 橙: 'orange', 粉: 'pink' };
+
+    function tryLocalRule(input, hasApp) {
+      const text = input.trim();
+      if (hasApp && /主题|颜色|换|改成/.test(text)) {
+        for (const k in THEME_KEYWORDS) {
+          if (text.includes(k)) return { action: 'updateTheme', config: { theme: THEME_KEYWORDS[k] }, replySteps: [`已切换为${k}色主题。`] };
+        }
+      }
+      if (hasApp && /加|添加|增加/.test(text) && /导出/.test(text)) {
+        return { action: 'toggleFeature', config: { feature: 'export' }, replySteps: ['已添加导出功能。'] };
+      }
+      // 自由描述（如「管理读书笔记」）不走本地规则，交给 LLM
+      if (/^(做|帮我做|创建|生成)?一个\s*AI\s*(写作|代码|问答)助手$/i.test(text) || text.length <= 12) {
+        for (const rule of LOCAL_RULES) {
+          if (rule.match.test(text)) {
+            const r = { ...rule.result, config: { ...rule.result.config } };
+            for (const k in THEME_KEYWORDS) {
+              if (text.includes(k)) { r.config.theme = THEME_KEYWORDS[k]; break; }
+            }
+            return r;
+          }
+        }
+      }
+      return null;
+    }
+
+    // ===== 3. IndexedDB 封装 =====
+    const DB_NAME = 'AtomsDemoDB_v2';
+    const STORES = ['apps', 'messages', 'appData'];
+    let dbPromise = null;
+    function openDB() {
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = () => {
+          const d = req.result;
+          STORES.forEach((s) => {
+            if (!d.objectStoreNames.contains(s)) {
+              const os = d.createObjectStore(s, { keyPath: 'id', autoIncrement: true });
+              os.createIndex('createdAt', 'createdAt');
+              if (s !== 'apps') os.createIndex('appId', 'appId');
+            }
+          });
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      return dbPromise;
+    }
+    async function tx(store, mode, fn) {
+      const d = await openDB();
+      return new Promise((resolve, reject) => {
+        const t = d.transaction(store, mode);
+        const r = fn(t.objectStore(store));
+        t.oncomplete = () => resolve(r && 'result' in r ? r.result : undefined);
+        t.onerror = () => reject(t.error);
+      });
+    }
+    const idbAdd = (s, data) => tx(s, 'readwrite', (os) => os.add({ ...data, createdAt: data.createdAt || Date.now() }));
+    const idbGetAll = (s) => tx(s, 'readonly', (os) => os.getAll());
+    const idbGet = (s, id) => tx(s, 'readonly', (os) => os.get(id));
+    const idbPut = (s, data) => tx(s, 'readwrite', (os) => os.put(data));
+    const idbDelete = (s, id) => tx(s, 'readwrite', (os) => os.delete(id));
+    const matches = (row, filter) => Object.keys(filter).every((k) => (row[k] ?? null) === (filter[k] ?? null));
+    async function idbDeleteWhere(s, filter) {
+      const rows = (await idbGetAll(s)).filter((r) => matches(r, filter));
+      if (!rows.length) return;
+      await tx(s, 'readwrite', (os) => { rows.forEach((r) => os.delete(r.id)); });
+    }
+
+    // ===== 4. db 对象（类 Dexie API）=====
+    function makeTable(s) {
+      const where = (filter) => {
+        const query = (rev) => ({
+          sortBy: async (key) => {
+            const rows = (await idbGetAll(s)).filter((r) => matches(r, filter));
+            rows.sort((a, b) => (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : a.id - b.id));
+            return rev ? rows.reverse() : rows;
+          },
+        });
+        return { ...query(false), reverse: () => query(true), delete: () => idbDeleteWhere(s, filter) };
+      };
+      return {
+        add: (data) => idbAdd(s, data),
+        get: (id) => idbGet(s, id),
+        update: async (id, patch) => { const r = await idbGet(s, id); if (r) await idbPut(s, { ...r, ...patch }); },
+        delete: (id) => idbDelete(s, id),
+        all: async () => (await idbGetAll(s)).sort((a, b) => b.createdAt - a.createdAt),
+        where,
+        deleteWhere: (filter) => idbDeleteWhere(s, filter),
+      };
+    }
+    const db = { apps: makeTable('apps'), messages: makeTable('messages'), appData: makeTable('appData') };
+
+    // ===== 5. useLiveQuery（轮询）=====
+    function useLiveQuery(fn, deps = [], initial) {
+      const [data, setData] = useState(initial);
+      useEffect(() => {
+        let alive = true; let last = null;
+        const run = async () => {
+          try {
+            const r = await fn();
+            const s = JSON.stringify(r);
+            if (alive && s !== last) { last = s; setData(r); }
+          } catch (e) { console.warn(e); }
+        };
+        run();
+        const t = setInterval(run, 450);
+        return () => { alive = false; clearInterval(t); };
+      }, deps);
+      return data;
+    }
+
+    // ===== 6. 意图解析 =====
+    function extractJSON(text) {
+      const s = text.replace(/```(?:json)?/gi, '').replace(/```/g, '');
+      const a = s.indexOf('{'); const b = s.lastIndexOf('}');
+      if (a < 0 || b <= a) throw new Error('模型未返回有效 JSON');
+      return JSON.parse(s.slice(a, b + 1));
+    }
+    async function parseIntentWithLLM(input, hasApp) {
+      const system = `你是应用生成智能体。用户用自然语言描述想要的应用，你判断意图并输出严格 JSON。
 
 可选模板：
-- AIWriter: AI 写作助手
-- AICoder: AI 代码助手
-- ChatAssistant: AI 问答助手
+- AIWriter: AI 写作助手（适合写作、笔记整理、文案、总结类）
+- AICoder: AI 代码助手（适合代码、脚本、配置类）
+- ChatAssistant: AI 问答助手（适合问答、咨询、陪聊、知识管理类）
 
 主题色：blue, purple, green, red, orange, pink
 
@@ -183,465 +253,296 @@ async function parseIntentWithLLM(userInput, currentApp) {
 无法理解：
 {"action":"unknown","replySteps":["提示"]}
 
-当前有激活应用：${currentApp ? '是，' + currentApp.name : '否'}`;
-
-  const reply = await callLLM([
-    { role: 'system', content: sys },
-    { role: 'user', content: userInput },
-  ], 0.3);
-
-  let txt = reply.trim();
-  const m = txt.match(/```(?:json)?\s*([\s\S]*?)```/);
-  if (m) txt = m[1].trim();
-  const s = txt.indexOf('{'), e = txt.lastIndexOf('}');
-  if (s >= 0 && e > s) txt = txt.slice(s, e + 1);
-  return JSON.parse(txt);
-}
-
-// ============ IndexedDB ============
-const DB_NAME = 'AtomsDemoDB';
-let dbReady = null;
-function openDB() {
-  if (dbReady) return dbReady;
-  dbReady = new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = e => {
-      const d = e.target.result;
-      if (!d.objectStoreNames.contains('apps')) d.createObjectStore('apps', { keyPath: 'id', autoIncrement: true });
-      if (!d.objectStoreNames.contains('messages')) d.createObjectStore('messages', { keyPath: 'id', autoIncrement: true });
-      if (!d.objectStoreNames.contains('appData')) d.createObjectStore('appData', { keyPath: 'id', autoIncrement: true });
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-  return dbReady;
-}
-async function idbAdd(s, data) { const d = await openDB(); return new Promise((res, rej) => { const tx = d.transaction(s, 'readwrite'); const r = tx.objectStore(s).add(data); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
-async function idbGetAll(s, filter) { const d = await openDB(); return new Promise((res, rej) => { const tx = d.transaction(s, 'readonly'); const r = tx.objectStore(s).getAll(); r.onsuccess = () => { let rows = r.result || []; if (filter) rows = rows.filter(row => Object.entries(filter).every(([k, v]) => row[k] === v)); res(rows); }; r.onerror = () => rej(r.error); }); }
-async function idbGet(s, id) { const d = await openDB(); return new Promise((res, rej) => { const tx = d.transaction(s, 'readonly'); const r = tx.objectStore(s).get(id); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
-async function idbPut(s, data) { const d = await openDB(); return new Promise((res, rej) => { const tx = d.transaction(s, 'readwrite'); const r = tx.objectStore(s).put(data); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
-async function idbDelete(s, id) { const d = await openDB(); return new Promise((res, rej) => { const tx = d.transaction(s, 'readwrite'); const r = tx.objectStore(s).delete(id); r.onsuccess = () => res(); r.onerror = () => rej(r.error); }); }
-async function idbDeleteWhere(s, filter) { const rows = await idbGetAll(s, filter); for (const row of rows) await idbDelete(s, row.id); }
-
-const db = {
-  apps: {
-    add: d => idbAdd('apps', d),
-    get: id => idbGet('apps', id),
-    update: async (id, patch) => { const cur = await idbGet('apps', id); if (!cur) return; await idbPut('apps', { ...cur, ...patch }); },
-    delete: id => idbDelete('apps', id),
-    all: async () => (await idbGetAll('apps')).sort((a, b) => b.createdAt - a.createdAt),
-  },
-  messages: {
-    add: d => idbAdd('messages', d),
-    where: filter => ({ sortBy: async f => (await idbGetAll('messages', filter)).sort((a, b) => (a[f]||0) - (b[f]||0)) }),
-    deleteWhere: filter => idbDeleteWhere('messages', filter),
-  },
-  appData: {
-    add: d => idbAdd('appData', d),
-    where: filter => ({
-      sortBy: async f => (await idbGetAll('appData', filter)).sort((a, b) => (a[f]||0) - (b[f]||0)),
-      reverse: () => ({ sortBy: async f => (await idbGetAll('appData', filter)).sort((a, b) => (b[f]||0) - (a[f]||0)) }),
-      delete: () => idbDeleteWhere('appData', filter),
-    }),
-  },
-};
-
-function useLiveQuery(queryFn, deps = []) {
-  const [data, setData] = useState(undefined);
-  useEffect(() => {
-    let alive = true;
-    const refresh = () => { Promise.resolve(queryFn()).then(d => { if (alive) setData(d); }); };
-    refresh();
-    const iv = setInterval(refresh, 500);
-    return () => { alive = false; clearInterval(iv); };
-  }, deps);
-  return data;
-}
-
-const nanoid = () => Math.random().toString(36).slice(2, 10);
-
-const THEME_BG = { blue:'bg-blue-50', purple:'bg-purple-50', green:'bg-green-50', red:'bg-red-50', orange:'bg-orange-50', pink:'bg-pink-50' };
-const THEME_BTN = { blue:'bg-blue-500', purple:'bg-purple-500', green:'bg-green-500', red:'bg-red-500', orange:'bg-orange-500', pink:'bg-pink-500' };
-
-// ============ 模板：AI 写作助手 ============
-function AIWriter({ appId, config }) {
-  const [topic, setTopic] = useState('');
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const theme = config?.theme || 'purple';
-  const features = config?.features || [];
-
-  useEffect(() => { db.appData.where({ appId, type:'article' }).reverse().sortBy('createdAt').then(setResults); }, [appId]);
-
-  const generate = async () => {
-    if (!topic.trim() || loading) return;
-    setLoading(true); setError('');
-    const t = topic;
-    try {
-      const text = await callLLM([
-        { role:'system', content:'你是专业写作助手。根据主题写一篇结构清晰的文章，用 Markdown 格式。' },
-        { role:'user', content:`请写一篇关于「${t}」的文章` },
-      ]);
-      const article = { id: nanoid(), appId, type:'article', content: { topic: t, text }, createdAt: Date.now() };
-      await db.appData.add(article);
-      setResults(p => [article, ...p]);
-      setTopic('');
-    } catch (e) { setError(e.message); }
-    finally { setLoading(false); }
-  };
-
-  const exportAll = () => {
-    const text = results.map(r => r.content.text).join('\n\n---\n\n');
-    const blob = new Blob([text], { type:'text/markdown' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = 'articles.md'; a.click();
-  };
-
-  return (
-    <div className="h-full flex flex-col bg-white">
-      <div className="flex items-center justify-between px-4 py-2 border-b">
-        <span className="font-medium">AI 写作助手</span>
-        {features.includes('export') && <button onClick={exportAll} className="p-1.5 rounded hover:bg-gray-100">⬇ 导出</button>}
-      </div>
-      <div className="p-4 border-b flex gap-2">
-        <input value={topic} onChange={e=>setTopic(e.target.value)} onKeyDown={e=>e.key==='Enter'&&generate()}
-          className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none" placeholder="输入写作主题，如：人工智能的未来" />
-        <button onClick={generate} disabled={loading}
-          className={`px-4 py-2 text-white rounded-lg text-sm ${THEME_BTN[theme]||'bg-purple-500'} disabled:opacity-50`}>
-          {loading ? '生成中...' : '生成'}
-        </button>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {error && <div className="text-sm text-red-500 p-2 bg-red-50 rounded">{error}</div>}
-        {results.length === 0 && !loading && !error && <div className="text-center text-gray-400 mt-8 text-sm">输入主题，AI 会为你生成文章</div>}
-        {loading && <div className="text-center text-gray-400 text-sm">AI 正在写作...</div>}
-        {results.map(r => (
-          <div key={r.id} className="p-4 bg-gray-50 rounded-lg border">
-            <div className="text-xs text-gray-500 mb-2">主题：{r.content.topic}</div>
-            <pre className="whitespace-pre-wrap text-sm font-sans">{r.content.text}</pre>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ============ 模板：AI 代码助手 ============
-function AICoder({ appId, config }) {
-  const [requirement, setRequirement] = useState('');
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const theme = config?.theme || 'blue';
-  const features = config?.features || [];
-
-  useEffect(() => { db.appData.where({ appId, type:'code' }).reverse().sortBy('createdAt').then(setResults); }, [appId]);
-
-  const generate = async () => {
-    if (!requirement.trim() || loading) return;
-    setLoading(true); setError('');
-    const r = requirement;
-    try {
-      const text = await callLLM([
-        { role:'system', content:'你是资深程序员。根据需求生成代码，用 markdown 代码块包裹，并简要说明。' },
-        { role:'user', content: r },
-      ]);
-      const item = { id: nanoid(), appId, type:'code', content: { requirement: r, text }, createdAt: Date.now() };
-      await db.appData.add(item);
-      setResults(p => [item, ...p]);
-      setRequirement('');
-    } catch (e) { setError(e.message); }
-    finally { setLoading(false); }
-  };
-
-  const exportAll = () => {
-    const text = results.map(r => `需求：${r.content.requirement}\n\n${r.content.text}`).join('\n\n=====\n\n');
-    const blob = new Blob([text], { type:'text/markdown' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = 'codes.md'; a.click();
-  };
-
-  return (
-    <div className="h-full flex flex-col bg-white">
-      <div className="flex items-center justify-between px-4 py-2 border-b">
-        <span className="font-medium">AI 代码助手</span>
-        {features.includes('export') && <button onClick={exportAll} className="p-1.5 rounded hover:bg-gray-100">⬇ 导出</button>}
-      </div>
-      <div className="p-4 border-b flex gap-2">
-        <input value={requirement} onChange={e=>setRequirement(e.target.value)} onKeyDown={e=>e.key==='Enter'&&generate()}
-          className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none" placeholder="如：写一个 Dockerfile 部署 Node.js 应用" />
-        <button onClick={generate} disabled={loading}
-          className={`px-4 py-2 text-white rounded-lg text-sm ${THEME_BTN[theme]||'bg-blue-500'} disabled:opacity-50`}>
-          {loading ? '生成中...' : '生成'}
-        </button>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {error && <div className="text-sm text-red-500 p-2 bg-red-50 rounded">{error}</div>}
-        {results.length === 0 && !loading && !error && <div className="text-center text-gray-400 mt-8 text-sm">描述你的编程需求，AI 会为你生成代码</div>}
-        {loading && <div className="text-center text-gray-400 text-sm">AI 正在编写代码...</div>}
-        {results.map(r => (
-          <div key={r.id} className="p-4 bg-gray-50 rounded-lg border">
-            <div className="text-xs text-gray-500 mb-2">需求：{r.content.requirement}</div>
-            <pre className="whitespace-pre-wrap text-xs font-mono bg-white p-3 rounded border">{r.content.text}</pre>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ============ 模板：AI 问答助手 ============
-function ChatAssistant({ appId, config }) {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const theme = config?.theme || 'blue';
-  const bottomRef = useRef(null);
-
-  useEffect(() => { db.appData.where({ appId, type:'message' }).sortBy('createdAt').then(setMessages); }, [appId]);
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }); }, [messages, loading]);
-
-  const send = async () => {
-    if (!input.trim() || loading) return;
-    const text = input.trim();
-    setInput(''); setError('');
-    const userMsg = { id: nanoid(), appId, type:'message', content: { role:'user', text }, createdAt: Date.now() };
-    await db.appData.add(userMsg);
-    setMessages(p => [...p, userMsg]);
-    setLoading(true);
-    try {
-      const history = [...messages, userMsg].map(m => ({ role: m.content.role, content: m.content.text }));
-      const reply = await callLLM([{ role:'system', content:'你是一个乐于助人的 AI 助手。' }, ...history]);
-      const aiMsg = { id: nanoid(), appId, type:'message', content: { role:'assistant', text: reply }, createdAt: Date.now() };
-      await db.appData.add(aiMsg);
-      setMessages(p => [...p, aiMsg]);
-    } catch (e) { setError(e.message); }
-    finally { setLoading(false); }
-  };
-
-  const clear = async () => { await db.appData.where({ appId, type:'message' }).delete(); setMessages([]); };
-
-  return (
-    <div className={`h-full flex flex-col ${THEME_BG[theme]||''}`}>
-      <div className="flex items-center justify-between px-4 py-2 bg-white border-b">
-        <span className="font-medium">AI 问答助手</span>
-        <button onClick={clear} className="p-1.5 rounded hover:bg-gray-100">🗑</button>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.length === 0 && <div className="text-center text-gray-400 mt-8 text-sm">{config?.welcome || '开始对话吧'}</div>}
-        {messages.map(m => (
-          <div key={m.id} className={m.content.role==='user' ? 'text-right' : 'text-left'}>
-            <div className={`inline-block px-3 py-2 rounded-lg max-w-[80%] text-sm whitespace-pre-wrap ${
-              m.content.role==='user' ? `${THEME_BTN[theme]||'bg-blue-500'} text-white` : 'bg-white shadow'
-            }`}>{m.content.text}</div>
-          </div>
-        ))}
-        {loading && <div className="text-xs text-gray-400">AI 思考中...</div>}
-        {error && <div className="text-xs text-red-500">{error}</div>}
-        <div ref={bottomRef} />
-      </div>
-      <div className="p-3 border-t bg-white flex gap-2">
-        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()}
-          className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none" placeholder="输入消息..." />
-        <button onClick={send} disabled={loading}
-          className={`px-4 py-2 text-white rounded-lg text-sm ${THEME_BTN[theme]||'bg-blue-500'} disabled:opacity-50`}>发送</button>
-      </div>
-    </div>
-  );
-}
-
-// ============ 对话面板 ============
-function ChatPanel({ activeAppId, activeApp, onCreateApp, onUpdateApp }) {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [hint, setHint] = useState('');
-  const bottomRef = useRef(null);
-
-  useEffect(() => {
-    const q = activeAppId ? { appId: activeAppId } : { appId: null };
-    db.messages.where(q).sortBy('createdAt').then(setMessages);
-  }, [activeAppId]);
-
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }); }, [messages]);
-
-  const pushMessage = async (role, content) => {
-    const msg = { appId: activeAppId ?? null, role, content, createdAt: Date.now() };
-    await db.messages.add(msg);
-    setMessages(p => [...p, msg]);
-  };
-
-  const applyResult = async (result) => {
-    const steps = result.replySteps || ['处理中...'];
-    for (const step of steps) await pushMessage('assistant', step);
-
-    if (result.action === 'create' && result.template && result.config) {
-      await onCreateApp(result.template, result.config, result.name || '未命名应用');
-    } else if (result.action === 'updateTheme' && activeAppId) {
-      await onUpdateApp(activeAppId, { config: { theme: result.config.theme } });
-    } else if (result.action === 'toggleFeature' && activeAppId) {
-      const app = await db.apps.get(activeAppId);
-      if (app) {
-        const features = new Set(app.config.features || []);
-        features.add(result.config.feature);
-        await onUpdateApp(activeAppId, { config: { ...app.config, features: Array.from(features) } });
-      }
-    }
-  };
-
-  const send = async () => {
-    if (!input.trim() || busy) return;
-    const text = input; setInput(''); setBusy(true); setHint('');
-    await pushMessage('user', text);
-
-    // 1. 先试本地规则
-    const localResult = tryLocalRule(text, !!activeAppId);
-    if (localResult) {
-      await applyResult(localResult);
-      setBusy(false);
-      return;
+当前有激活应用：${hasApp ? '是' : '否'}`;
+      const raw = await callLLM([{ role: 'system', content: system }, { role: 'user', content: input }], 0.3);
+      return extractJSON(raw);
     }
 
-    // 2. 本地规则不命中，调 LLM
-    setHint('智能体思考中（约 3-8 秒）...');
-    const started = Date.now();
-    try {
-      const result = await parseIntentWithLLM(text, activeApp);
-      const elapsed = ((Date.now() - started) / 1000).toFixed(1);
-      setHint(`智能体用了 ${elapsed} 秒`);
-      await applyResult(result);
-    } catch (e) {
-      await pushMessage('assistant', `出错了：${e.message}`);
-    } finally {
-      setBusy(false);
-      setTimeout(() => setHint(''), 2000);
-    }
-  };
+    // ===== 7. 主题映射 =====
+    const THEME_BG = { blue: 'bg-blue-50', purple: 'bg-purple-50', green: 'bg-green-50', red: 'bg-red-50', orange: 'bg-orange-50', pink: 'bg-pink-50' };
+    const THEME_BTN = { blue: 'bg-blue-500', purple: 'bg-purple-500', green: 'bg-green-500', red: 'bg-red-500', orange: 'bg-orange-500', pink: 'bg-pink-500' };
+    const TEMPLATES = ['AIWriter', 'AICoder', 'ChatAssistant'];
 
-  return (
-    <div className="h-full flex flex-col bg-white border-r">
-      <div className="px-4 py-3 border-b font-semibold text-gray-800">Atoms 工作区</div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {messages.length === 0 && (
-          <div className="text-sm text-gray-500 space-y-2">
-            <p className="font-medium text-gray-700">👋 试试这样描述你的应用：</p>
-            {['做一个 AI 写作助手','做一个 AI 代码助手','做一个 AI 问答助手','做一个红色主题的 AI 写作助手'].map(t => (
-              <button key={t} onClick={()=>setInput(t)}
-                className="block text-left px-3 py-2 bg-gray-50 rounded hover:bg-gray-100 w-full">{t}</button>
+    function downloadText(filename, text) {
+      const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    // ===== 8. 模板组件 =====
+    // 写作/代码两个模板结构相同，用一个生成器组件复用
+    function GeneratorApp({ app, type, title, placeholder, systemPrompt, mono, ext }) {
+      const theme = app.config?.theme || 'blue';
+      const features = app.config?.features || [];
+      const [input, setInput] = useState('');
+      const [busy, setBusy] = useState(false);
+      const [err, setErr] = useState('');
+      const items = useLiveQuery(() => db.appData.where({ appId: app.id, type }).reverse().sortBy('createdAt'), [app.id], []);
+
+      const generate = async () => {
+        const topic = input.trim();
+        if (!topic || busy) return;
+        setBusy(true); setErr('');
+        try {
+          const out = await callLLM([{ role: 'system', content: systemPrompt }, { role: 'user', content: topic }]);
+          await db.appData.add({ appId: app.id, type, content: JSON.stringify({ topic, text: out }) });
+          setInput('');
+        } catch (e) { setErr('出错了：' + e.message); }
+        finally { setBusy(false); }
+      };
+      const exportAll = () => {
+        const body = items.map((it) => { const c = JSON.parse(it.content); return `## ${c.topic}\n\n${c.text}`; }).join('\n\n---\n\n');
+        downloadText(`${app.name}.${ext}`, body || '暂无内容');
+      };
+
+      return (
+        <div className={`h-full flex flex-col ${THEME_BG[theme]}`}>
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
+            <div className="font-semibold">{title}</div>
+            {features.includes('export') && (
+              <button className={`px-3 py-2 rounded text-sm text-white ${THEME_BTN[theme]}`} onClick={exportAll}>⬇ 导出</button>
+            )}
+          </div>
+          <div className="p-4 flex gap-2">
+            <input className="flex-1 px-3 py-2 rounded border bg-white outline-none text-sm" value={input} placeholder={placeholder || app.config?.welcome}
+              onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && generate()} />
+            <button className={`px-4 py-2 rounded text-sm text-white ${THEME_BTN[theme]} disabled:opacity-50`} disabled={busy || !input.trim()} onClick={generate}>
+              {busy ? '生成中…' : '生成'}
+            </button>
+          </div>
+          {err && <div className="px-4 text-sm text-red-500">{err}</div>}
+          <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
+            {items.length === 0 && <div className="text-center text-sm text-gray-400 mt-8">{app.config?.welcome || '还没有内容'}</div>}
+            {items.map((it) => {
+              const c = JSON.parse(it.content);
+              return (
+                <div key={it.id} className="bg-white rounded-lg shadow p-4">
+                  <div className="text-xs text-gray-500 mb-2">📝 {c.topic} · {new Date(it.createdAt).toLocaleString()}</div>
+                  <div className={`text-sm whitespace-pre-wrap ${mono ? 'font-mono bg-gray-900 text-gray-100 rounded p-3' : 'text-gray-800'}`}>{c.text}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    const AIWriter = ({ app }) => (
+      <GeneratorApp app={app} type="article" title={'✍️ ' + app.name} ext="md"
+        systemPrompt="你是专业写作助手。根据用户给出的主题，用 Markdown 写一篇结构清晰的中文文章，包含标题、小标题和正文。" />
+    );
+    const AICoder = ({ app }) => (
+      <GeneratorApp app={app} type="code" title={'💻 ' + app.name} ext="txt" mono
+        systemPrompt="你是资深工程师。根据用户需求直接输出可用的代码，必要时附简短注释，不要多余解释。" />
+    );
+
+    function ChatAssistant({ app }) {
+      const theme = app.config?.theme || 'blue';
+      const features = app.config?.features || [];
+      const [input, setInput] = useState('');
+      const [busy, setBusy] = useState(false);
+      const endRef = useRef(null);
+      const msgs = useLiveQuery(() => db.appData.where({ appId: app.id, type: 'message' }).sortBy('createdAt'), [app.id], []);
+      useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs.length, busy]);
+
+      const send = async () => {
+        const text = input.trim();
+        if (!text || busy) return;
+        setInput(''); setBusy(true);
+        await db.appData.add({ appId: app.id, type: 'message', content: JSON.stringify({ role: 'user', text }) });
+        const history = msgs.map((m) => { const c = JSON.parse(m.content); return { role: c.role, content: c.text }; });
+        try {
+          const out = await callLLM([{ role: 'system', content: '你是友好、专业的中文问答助手。' }, ...history.slice(-10), { role: 'user', content: text }]);
+          await db.appData.add({ appId: app.id, type: 'message', content: JSON.stringify({ role: 'assistant', text: out }) });
+        } catch (e) {
+          await db.appData.add({ appId: app.id, type: 'message', content: JSON.stringify({ role: 'assistant', text: '出错了：' + e.message }) });
+        } finally { setBusy(false); }
+      };
+      const exportChat = () => downloadText(`${app.name}.txt`, msgs.map((m) => { const c = JSON.parse(m.content); return `${c.role === 'user' ? '我' : 'AI'}：${c.text}`; }).join('\n\n'));
+
+      return (
+        <div className={`h-full flex flex-col ${THEME_BG[theme]}`}>
+          <div className="flex items-center justify-between px-4 py-3 border-b bg-white">
+            <div className="font-semibold">💬 {app.name}</div>
+            <div className="flex gap-2">
+              {features.includes('export') && <button className={`px-3 py-2 rounded text-sm text-white ${THEME_BTN[theme]}`} onClick={exportChat}>⬇ 导出</button>}
+              <button className="px-3 py-2 rounded text-sm border bg-white hover:bg-gray-100" onClick={() => db.appData.where({ appId: app.id, type: 'message' }).delete()}>清空</button>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {msgs.length === 0 && <div className="text-center text-sm text-gray-400 mt-8">{app.config?.welcome || '开始对话吧'}</div>}
+            {msgs.map((m) => {
+              const c = JSON.parse(m.content);
+              const mine = c.role === 'user';
+              return (
+                <div key={m.id} className={`flex ${mine ? 'justify-end' : ''}`}>
+                  <div className={`max-w-[80%] px-3 py-2 rounded-lg text-sm whitespace-pre-wrap ${mine ? THEME_BTN[theme] + ' text-white' : 'bg-white shadow text-gray-800'}`}>{c.text}</div>
+                </div>
+              );
+            })}
+            {busy && <div className="text-xs text-gray-400">AI 正在回复…</div>}
+            <div ref={endRef} />
+          </div>
+          <div className="p-3 border-t bg-white flex gap-2">
+            <input className="flex-1 px-3 py-2 rounded border outline-none text-sm" value={input} placeholder="输入问题，回车发送"
+              onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && send()} />
+            <button className={`px-4 py-2 rounded text-sm text-white ${THEME_BTN[theme]} disabled:opacity-50`} disabled={busy || !input.trim()} onClick={send}>发送</button>
+          </div>
+        </div>
+      );
+    }
+    const TEMPLATE_MAP = { AIWriter, AICoder, ChatAssistant };
+
+    // ===== 9. ChatPanel =====
+    const PRESETS = ['做一个 AI 写作助手', '做一个 AI 代码助手', '做一个 AI 问答助手', '做一个管理读书笔记的应用'];
+    function ChatPanel({ messages, onSend, busy, waitingLLM }) {
+      const [input, setInput] = useState('');
+      const endRef = useRef(null);
+      useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages.length, busy]);
+      const submit = () => { const t = input.trim(); if (!t || busy) return; setInput(''); onSend(t); };
+      return (
+        <div className="w-96 flex-shrink-0 flex flex-col border-r bg-white">
+          <div className="px-4 py-3 border-b font-semibold">⚛️ Atoms 工作区</div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.length === 0 && (
+              <div className="mt-8">
+                <div className="text-sm text-gray-500 text-center mb-2">用一句话描述你想要的应用</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {PRESETS.map((p) => (
+                    <button key={p} className="p-3 rounded-lg border text-sm text-left text-gray-700 hover:bg-gray-100" onClick={() => setInput(p)}>{p}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {messages.map((m) => (
+              <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : ''}`}>
+                <div className={`max-w-[85%] px-3 py-2 rounded-lg text-sm whitespace-pre-wrap ${m.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800'}`}>
+                  {m.role === 'assistant' && '🤖 '}{m.content}
+                </div>
+              </div>
+            ))}
+            {waitingLLM && <div className="text-sm text-gray-500">🤔 智能体思考中（约 3-8 秒）...</div>}
+            <div ref={endRef} />
+          </div>
+          <div className="p-3 border-t flex gap-2">
+            <input className="flex-1 px-3 py-2 rounded border outline-none text-sm" value={input} placeholder="描述应用，或说「换个红色主题」"
+              onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && submit()} />
+            <button aria-label="发送" className="px-3 py-2 rounded bg-blue-500 text-white disabled:opacity-50" disabled={busy || !input.trim()} onClick={submit}>➤</button>
+          </div>
+        </div>
+      );
+    }
+
+    // ===== 10. PreviewPanel =====
+    function PreviewPanel({ app }) {
+      const Tpl = app ? TEMPLATE_MAP[app.template] : null;
+      return (
+        <div className="flex-1 flex flex-col bg-gray-100 p-4">
+          <div className="flex-1 flex flex-col bg-white rounded-lg shadow overflow-hidden border">
+            <div className="flex items-center gap-2 px-3 py-2 border-b bg-gray-50">
+              <span className="dot bg-red-500"></span><span className="dot bg-orange-500"></span><span className="dot bg-green-500"></span>
+              <span className="ml-2 text-xs text-gray-500 truncate">{app ? app.name : '预览'}</span>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              {Tpl ? <Tpl key={app.id} app={app} /> : (
+                <div className="h-full flex items-center justify-center text-sm text-gray-400">左侧描述你的应用，这里会实时预览</div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ===== 11. AppSidebar =====
+    function AppSidebar({ apps, activeId, onSelect, onDelete }) {
+      return (
+        <div className="w-56 flex-shrink-0 flex flex-col border-r bg-gray-50">
+          <div className="px-4 py-3 text-xs uppercase text-gray-500 font-semibold">我的应用</div>
+          <div className="flex-1 overflow-y-auto px-2 space-y-1">
+            {apps.length === 0 && <div className="px-2 py-2 text-sm text-gray-400">还没有应用</div>}
+            {apps.map((a) => (
+              <div key={a.id} onClick={() => onSelect(a.id)}
+                className={`group flex items-center justify-between px-3 py-2 rounded text-sm cursor-pointer ${a.id === activeId ? 'bg-blue-100 text-blue-700 font-medium' : 'text-gray-700 hover:bg-gray-100'}`}>
+                <span className="truncate">{a.name}</span>
+                <button aria-label={`删除 ${a.name}`} className="opacity-0 group-hover:opacity-100 text-gray-400 text-xs p-1.5"
+                  onClick={(e) => { e.stopPropagation(); onDelete(a.id); }}>✕</button>
+              </div>
             ))}
           </div>
-        )}
-        {messages.map((m, i) => (
-          <div key={i} className={m.role === 'user' ? 'text-right' : ''}>
-            <div className={`inline-block px-3 py-2 rounded-lg max-w-[85%] text-sm whitespace-pre-wrap ${
-              m.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800'
-            }`}>{m.content}</div>
-          </div>
-        ))}
-        {busy && <div className="text-xs text-gray-400">{hint || '处理中...'}</div>}
-        <div ref={bottomRef} />
-      </div>
-      <div className="p-3 border-t flex gap-2">
-        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()}
-          className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none" placeholder="描述你想要的应用..." />
-        <button onClick={send} disabled={busy}
-          className="px-3 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50">➤</button>
-      </div>
-    </div>
-  );
-}
-
-// ============ 预览面板 ============
-function PreviewPanel({ app }) {
-  if (!app) return (
-    <div className="h-full flex items-center justify-center bg-gray-50 text-gray-400 text-sm">
-      <div className="text-center">左侧描述你的应用，这里会实时预览</div>
-    </div>
-  );
-  const Comp = app.template === 'ChatAssistant' ? ChatAssistant
-    : app.template === 'AIWriter' ? AIWriter
-    : app.template === 'AICoder' ? AICoder : AIWriter;
-  return (
-    <div className="h-full flex flex-col">
-      <div className="px-4 py-2 border-b bg-white flex items-center justify-between text-sm">
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-            <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
-          </div>
-          <span className="text-gray-600 ml-2">{app.name}</span>
         </div>
-      </div>
-      <div className="flex-1 overflow-hidden"><Comp appId={app.id} config={app.config} /></div>
-    </div>
-  );
-}
+      );
+    }
 
-// ============ 应用侧栏 ============
-function AppSidebar({ activeAppId, onSelect, onDelete }) {
-  const apps = useLiveQuery(() => db.apps.all(), []) || [];
-  return (
-    <div className="w-56 bg-gray-50 border-r flex flex-col">
-      <div className="px-3 py-3 text-xs font-semibold text-gray-500 uppercase">我的应用</div>
-      <div className="flex-1 overflow-y-auto px-2 space-y-1">
-        {apps.length === 0 && <div className="text-xs text-gray-400 px-2 py-4">还没有应用</div>}
-        {apps.map(app => (
-          <div key={app.id}
-            className={`group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-sm ${
-              activeAppId === app.id ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100 text-gray-700'
-            }`} onClick={()=>onSelect(app.id)}>
-            <span className="truncate">{app.name}</span>
-            <button onClick={e=>{e.stopPropagation(); onDelete(app.id);}}
-              className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500">✕</button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+    // ===== 12. Workspace 主编排 =====
+    function Workspace() {
+      const [activeId, setActiveIdState] = useState(() => Number(localStorage.getItem('atoms_active')) || null);
+      const [busy, setBusy] = useState(false);
+      const [waitingLLM, setWaitingLLM] = useState(false);
+      const apps = useLiveQuery(() => db.apps.all(), [], []);
+      const messages = useLiveQuery(() => db.messages.where({ appId: activeId }).sortBy('createdAt'), [activeId], []);
+      const activeApp = apps.find((a) => a.id === activeId) || null;
 
-// ============ 工作区主编排 ============
-function Workspace() {
-  const [activeAppId, setActiveAppId] = useState(null);
-  const activeApp = useLiveQuery(() => activeAppId ? db.apps.get(activeAppId) : Promise.resolve(null), [activeAppId]);
+      const setActiveId = (id) => { setActiveIdState(id); localStorage.setItem('atoms_active', id || ''); };
 
-  const createApp = async (template, config, name) => {
-    const id = await db.apps.add({ name, template, config, createdAt: Date.now() });
-    setActiveAppId(id);
-    return id;
-  };
+      const handleSend = async (text) => {
+        setBusy(true);
+        const hasApp = !!activeApp;
+        const userMsgId = await db.messages.add({ appId: activeId, role: 'user', content: text });
+        let targetId = activeId;
+        try {
+          let intent = tryLocalRule(text, hasApp);
+          if (!intent) {
+            setWaitingLLM(true);
+            intent = await parseIntentWithLLM(text, hasApp);
+          }
+          const steps = Array.isArray(intent.replySteps) && intent.replySteps.length ? intent.replySteps : ['好的。'];
+          if (intent.action === 'create') {
+            const template = TEMPLATES.includes(intent.template) ? intent.template : 'ChatAssistant';
+            const cfg = intent.config || {};
+            const newId = await db.apps.add({
+              name: intent.name || 'AI 应用', template,
+              config: { theme: THEME_BTN[cfg.theme] ? cfg.theme : 'blue', welcome: cfg.welcome || '', features: [] },
+            });
+            await db.messages.update(userMsgId, { appId: newId });
+            targetId = newId;
+            setActiveId(newId);
+          } else if (intent.action === 'updateTheme' && hasApp) {
+            const theme = intent.config?.theme;
+            if (THEME_BTN[theme]) await db.apps.update(activeApp.id, { config: { ...activeApp.config, theme } });
+          } else if (intent.action === 'toggleFeature' && hasApp) {
+            const f = intent.config?.feature || 'export';
+            const fs = activeApp.config.features || [];
+            if (!fs.includes(f)) await db.apps.update(activeApp.id, { config: { ...activeApp.config, features: [...fs, f] } });
+          } else if (intent.action !== 'unknown' && !hasApp) {
+            steps.splice(0, steps.length, '请先创建一个应用，再修改主题或功能。');
+          }
+          for (const s of steps) await db.messages.add({ appId: targetId, role: 'assistant', content: s });
+        } catch (e) {
+          await db.messages.add({ appId: targetId, role: 'assistant', content: '出错了：' + e.message });
+        } finally {
+          setWaitingLLM(false); setBusy(false);
+        }
+      };
 
-  const updateApp = async (id, patch) => {
-    const app = await db.apps.get(id);
-    if (!app) return;
-    await db.apps.update(id, { config: { ...app.config, ...patch.config } });
-  };
+      const handleDelete = async (id) => {
+        await db.apps.delete(id);
+        await db.messages.deleteWhere({ appId: id });
+        await db.appData.deleteWhere({ appId: id });
+        if (id === activeId) setActiveId(null);
+      };
 
-  const deleteApp = async (id) => {
-    await db.apps.delete(id);
-    await db.appData.where({ appId: id }).delete();
-    await db.messages.deleteWhere({ appId: id });
-    if (activeAppId === id) setActiveAppId(null);
-  };
+      return (
+        <div className="flex h-screen overflow-hidden">
+          <AppSidebar apps={apps} activeId={activeId} onSelect={setActiveId} onDelete={handleDelete} />
+          <ChatPanel messages={messages} onSend={handleSend} busy={busy} waitingLLM={waitingLLM} />
+          <PreviewPanel app={activeApp} />
+        </div>
+      );
+    }
 
-  return (
-    <div className="h-screen flex bg-white">
-      <AppSidebar activeAppId={activeAppId} onSelect={setActiveAppId} onDelete={deleteApp} />
-      <div className="w-96 flex-shrink-0">
-        <ChatPanel activeAppId={activeAppId} activeApp={activeApp}
-          onCreateApp={createApp} onUpdateApp={updateApp} />
-      </div>
-      <div className="flex-1">
-        <PreviewPanel app={activeApp} />
-      </div>
-    </div>
-  );
-}
-
-ReactDOM.createRoot(document.getElementById('root')).render(<Workspace />);
-</script>
+    // ===== 13. 挂载 =====
+    ReactDOM.createRoot(document.getElementById('root')).render(<Workspace />);
+  </script>
 </body>
 </html>
